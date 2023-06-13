@@ -33,5 +33,6 @@ func NewRouter() *gin.Engine {
 		apiv1.GET("/articles/:id", article.Get)
 		apiv1.GET("/articles", article.List)
 	}
+
 	return r
 }
