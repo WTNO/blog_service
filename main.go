@@ -5,7 +5,9 @@ import (
 	"github.com/go-programming-tour-book/blog-service/global"
 	"github.com/go-programming-tour-book/blog-service/internal/model"
 	"github.com/go-programming-tour-book/blog-service/internal/routers"
+	"github.com/go-programming-tour-book/blog-service/pkg/logger"
 	"github.com/go-programming-tour-book/blog-service/pkg/setting"
+	"gopkg.in/natefinch/lumberjack.v2"
 	"log"
 	"net/http"
 	"time"
@@ -22,6 +24,11 @@ func init() {
 	if err != nil {
 		log.Fatalf("init.setupDBEngine err: %v", err)
 	}
+
+	err = setupLogger()
+	if err != nil {
+		log.Fatalf("init.setupLogger err: %v", err)
+	}
 }
 
 func main() {
@@ -34,12 +41,8 @@ func main() {
 		WriteTimeout:   global.ServerSetting.WriteTimeout,
 		MaxHeaderBytes: 1 << 20, // MaxHeaderBytes控制服务器在解析请求头的键和值（包括请求行）时读取的最大字节数。它不限制请求正文的大小。
 	}
-
+	global.Logger.Infof("%s: go-programming-tour-book/%s", "eddycjy", "blog-service")
 	s.ListenAndServe()
-}
-
-func setupLogger() error {
-	return nil
 }
 
 // 初始化配置读取
@@ -76,5 +79,17 @@ func setupDBEngine() error {
 	if err != nil {
 		return err
 	}
+	return nil
+}
+
+func setupLogger() error {
+	// 使用了 lumberjack 作为日志库的 io.Writer
+	global.Logger = logger.NewLogger(&lumberjack.Logger{
+		Filename:  global.AppSetting.LogSavePath + "/" + global.AppSetting.LogFileName + global.AppSetting.LogFileExt,
+		MaxSize:   600,  // 设置日志文件所允许的最大占用空间为 600MB
+		MaxAge:    10,   // 日志文件最大生存周期为 10 天
+		LocalTime: true, // 设置日志文件名的时间格式为本地时间
+	}, "", log.LstdFlags).WithCaller(2)
+
 	return nil
 }
