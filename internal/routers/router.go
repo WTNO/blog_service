@@ -2,7 +2,10 @@ package routers
 
 import (
 	"github.com/gin-gonic/gin"
+	_ "github.com/go-programming-tour-book/blog-service/docs"
 	v1 "github.com/go-programming-tour-book/blog-service/internal/routers/api/v1"
+	ginSwagger "github.com/swaggo/gin-swagger"
+	"github.com/swaggo/gin-swagger/swaggerFiles"
 )
 
 // 路由管理
@@ -11,6 +14,7 @@ func NewRouter() *gin.Engine {
 	// Use()函数将全局中间件附加到路由器，通过Use()附加的中间件将包含在每个请求的处理程序链中，包括404、405、静态文件等。
 	r.Use(gin.Logger())   // Logger实例化一个Logger中间件，它将日志写入gin.DefaultWriter。默认情况下，gin.DefaultWriter = os.Stdout。
 	r.Use(gin.Recovery()) // Recovery返回一个中间件，用于从任何panic中恢复，并在出现panic时写入500。
+	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	article := v1.NewArticle()
 	tag := v1.NewTag()
