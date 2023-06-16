@@ -15,7 +15,7 @@ func NewTag() Tag {
 	return Tag{}
 }
 
-func (t Tag) Get(c *gin.Context) {}
+//func (t Tag) Get(c *gin.Context) {}
 
 // @Summary 获取多个标签
 // @Produce  json
