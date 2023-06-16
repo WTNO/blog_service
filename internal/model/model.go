@@ -38,6 +38,11 @@ func NewDBEngine(databaseSetting *setting.DatabaseSettingS) (*gorm.DB, error) {
 	}
 
 	db.SingularTable(true)
+	// 注册回调行为
+	db.Callback().Create().Replace("gorm:update_time_stamp", updateTimeStampForCreateCallback)
+	db.Callback().Update().Replace("gorm:update_time_stamp", updateTimeStampForUpdateCallback)
+	db.Callback().Delete().Replace("gorm:delete", deleteCallback)
+
 	db.DB().SetMaxIdleConns(databaseSetting.MaxIdleConns)
 	db.DB().SetMaxIdleConns(databaseSetting.MaxOpenConns)
 
@@ -79,7 +84,10 @@ func deleteCallback(scope *gorm.Scope) {
 
 		deletedOnField, hasDeletedOnField := scope.FieldByName("DeletedOn")
 		isDelField, hasIsDelField := scope.FieldByName("IsDel")
+
+		// 判断是否存在 DeletedOn 和 IsDel 字段
 		if !scope.Search.Unscoped && hasDeletedOnField && hasIsDelField {
+			// 若存在则调整为执行 UPDATE 操作进行软删除
 			now := time.Now().Unix()
 			scope.Raw(fmt.Sprintf(
 				"UPDATE %v SET %v=%v,%v=%v%v%v",
@@ -92,9 +100,10 @@ func deleteCallback(scope *gorm.Scope) {
 				addExtraSpaceIfExist(extraOption),
 			)).Exec()
 		} else {
+			// 否则执行 DELETE 进行硬删除
 			scope.Raw(fmt.Sprintf(
 				"DELETE FROM %v%v%v",
-				scope.QuotedTableName(),
+				scope.QuotedTableName(), // 获取当前所引用的表名
 				addExtraSpaceIfExist(scope.CombinedConditionSql()),
 				addExtraSpaceIfExist(extraOption),
 			)).Exec()
