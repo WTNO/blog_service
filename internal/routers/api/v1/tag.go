@@ -140,7 +140,7 @@ func (t Tag) Delete(c *gin.Context) {
 	svc := service.New(c.Request.Context())
 	err := svc.DeleteTag(&param)
 	if err != nil {
-		global.Logger.Errorf("svc.DeleteTag err: %v", err)
+		global.Logger.Errorf("svc.DeleteTag err: %v ", err)
 		response.ToErrorResponse(errcode.ErrorDeleteTagFail)
 		return
 	}
